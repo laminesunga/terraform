@@ -1,23 +1,24 @@
-terraform {
-  required_providers {
-    docker = {
-      source  = "kreuzwerker/docker"
-      version = "3.0.1"
-    }
+data "aws_ami" "app_ami" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["bitnami-tomcat-*-x86_64-hvm-ebs-nami"]
   }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["979382823631"] # Bitnami
 }
 
-provider "docker" {
-  host = "unix:///var/run/docker.sock"
-}
+resource "aws_instance" "web" {
+  ami           = data.aws_ami.app_ami.id
+  instance_type = "t3.nano"
 
-# Pulls the image
-resource "docker_image" "ubuntu" {
-  name = "ubuntu:latest"
-}
-
-# Create a container
-resource "docker_container" "foo" {
-  image = docker_image.ubuntu.image_id
-  name  = "foo"
+  tags = {
+    Name = "HelloWorld"
+  }
 }
